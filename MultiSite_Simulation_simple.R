@@ -95,13 +95,93 @@ SMD_simdata = function(sim_heterogeneity_output){
 
 
 
-test <- sim_heterogeneity()
+p_hacking <- function(sim_heterogeneity_output){
+  
+  hacking_logical <- sapply(unique(sim_heterogeneity_output$sample), function(sample){
+    
+    dat.sample <- sim_heterogeneity_output[sim_heterogeneity_output$sample == sample,]
+    
+    
+    sample1 <- dat.sample$score[dat.sample$group == 1]
+    sample2 <- dat.sample$score[dat.sample$group == 2]
+    
+    mean1 = mean(sample1)
+    mean2 = mean(sample2)
+    
+    s2_1 = mean((sample1 - mean(sample1))^2)
+    s2_2 = mean((sample2 - mean(sample2))^2)
+    
+    n1 = length(sample1)
+    n2 = length(sample2)
+    
+    s_pooled = sqrt(((n1-1)*s2_1 + (n2-1)*s2_2) / (n1 + n2 - 2))
+    
+    
+    t <- (mean1 - mean2) / (s_pooled / sqrt(n1+n2-2))
+    
+    p <- pt(t, df = (n1 + n2 - 2), lower.tail = FALSE)
+    
+    return(p < .05)
+    
+  })
+  
+  
+  hacked_samples <- lapply(unique(sim_heterogeneity_output$sample), function(sample){
+    
+    if(hacking_logical[sample]){
+    
+      
+      dat.sample <- sim_heterogeneity_output[sim_heterogeneity_output$sample == sample,]
+      
+      
+      sample1 <- dat.sample$score[dat.sample$group == 1]
+      sample2 <- dat.sample$score[dat.sample$group == 2]
+      
+      
+      s1_sorted <- sort(sample1, decreasing = FALSE)
+      s2_sorted <- sort(sample2, decreasing = TRUE)
+      
+      hacked_s1 <- sample1[sample1 %in% s1_sorted[-(1:10)]]
+      hacked_s2 <- sample2[sample2 %in% s2_sorted[-(1:10)]]
+      
+      
+      hacked_sample <- data.frame(scores = c(hacked_s1, hacked_s2),
+                                  group = c(rep(1, length(hacked_s1)),
+                                            rep(2, length(hacked_s2))),
+                                  sample = sample)
+      
+      
+    }else{
+      hacked_sample <- sim_heterogeneity_output[sim_heterogeneity_output$sample == sample,]
+    }
+    
+    
+    
+    return(hacked_sample)
+    
+  })
+  
+  return(data.frame(score = unlist(lapply(hacked_samples, FUN = function(x){x$score})),
+                    group = unlist(lapply(hacked_samples, FUN = function(x){x$group})),
+                    sample = unlist(lapply(hacked_samples, FUN = function(x){x$sample}))))
+  
+  
+}
 
 
+
+test <- sim_heterogeneity(mean_effect = 0)
 
 ES.df <- SMD_simdata(test)
+
 metafor::rma(measure = "GEN", yi = SMD, sei = SE_SMD, data = ES.df,
              method = "REML")
 
 
 
+test_hacked <- p_hacking(test)
+
+ES_hacked.df <- SMD_simdata(test_hacked)
+
+metafor::rma(measure = "GEN", yi = SMD, sei = SE_SMD, data = ES_hacked.df,
+             method = "REML")
