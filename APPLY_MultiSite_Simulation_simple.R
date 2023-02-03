@@ -65,6 +65,8 @@ prep.Effect_Sizes <- seq(
                          , by = .1
                          )
 
+
+
 prep.Tau_Variations <- seq(
                            from = 0
                            , to = 1
@@ -245,9 +247,11 @@ df.hack.Multi_MA_estimates <- data.frame(rma_est = unlist(lapply(hack.Multi_MA_e
 # Visualise some of the results
 
 # estimated vs simulated SMD
-plot(df.hack.Multi_MA_estimates$sim_SMD, df.hack.Multi_MA_estimates$rma_est)
+plot(df.hack.Multi_MA_estimates$sim_SMD
+     , df.hack.Multi_MA_estimates$rma_est)
 # estimated vs simulated tau
-plot(df.hack.Multi_MA_estimates$sim_tau, df.hack.Multi_MA_estimates$rma_tau)
+plot(df.hack.Multi_MA_estimates$sim_tau
+     , df.hack.Multi_MA_estimates$rma_tau)
 
 # estimated vs simulated SMD, differentiated by levels of heterogeneity
 ggplot(df.hack.Multi_MA_estimates
