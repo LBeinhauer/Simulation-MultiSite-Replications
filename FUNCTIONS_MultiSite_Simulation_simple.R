@@ -214,20 +214,3 @@ p_hacking <- function(sim_heterogeneity_output){
   
 }
 
-
-
-test <- sim_heterogeneity(mean_effect = 0)
-
-ES.df <- SMD_simdata(test)
-
-metafor::rma(measure = "GEN", yi = SMD, sei = SE_SMD, data = ES.df,
-             method = "REML")
-
-
-
-test_hacked <- p_hacking(test)
-
-ES_hacked.df <- SMD_simdata(test_hacked)
-
-metafor::rma(measure = "GEN", yi = SMD, sei = SE_SMD, data = ES_hacked.df,
-             method = "REML")
